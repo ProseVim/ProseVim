@@ -1,5 +1,6 @@
-local config = require("prosevim.focus.config")
-local util = require("prosevim.focus.util")
+local config = require("prose.focus.config")
+local plugins = require("prose.focus.plugins")
+local util = require("prose.focus.util")
 local M = {}
 
 M.bg_win = nil
@@ -15,14 +16,34 @@ function M.is_open()
   return M.win and vim.api.nvim_win_is_valid(M.win)
 end
 
+function M.plugins_on_open()
+  for name, opts in pairs(M.opts.plugins) do
+    if opts and opts.enabled then
+      local plugin = plugins[name]
+      M.state[name] = {}
+      pcall(plugin, M.state[name], true, opts)
+    end
+  end
+end
+
+function M.plugins_on_close()
+  for name, opts in pairs(M.opts.plugins) do
+    if opts and opts.enabled then
+      local plugin = plugins[name]
+      pcall(plugin, M.state[name], false, opts)
+    end
+  end
+end
+
 function M.close()
-  pcall(vim.cmd, [[autocmd! ProseFocus]])
-  pcall(vim.cmd, [[augroup! ProseFocus]])
+  pcall(vim.cmd, [[autocmd! Zen]])
+  pcall(vim.cmd, [[augroup! Zen]])
 
   -- Change the parent window's cursor position to match
-  -- the cursor position in the zen window.
+  -- the cursor position in the zen-mode window.
   if M.parent and M.win then
     -- Ensure that the parent window has the same buffer
+    -- as the zen-mode window.
     if vim.api.nvim_win_get_buf(M.parent) == vim.api.nvim_win_get_buf(M.win) then
       -- Then, update the parent window's cursor position.
       vim.api.nvim_win_set_cursor(M.parent, vim.api.nvim_win_get_cursor(M.win))
@@ -42,6 +63,7 @@ function M.close()
     M.bg_buf = nil
   end
   if M.opts then
+    M.plugins_on_close()
     M.opts.on_close()
     M.opts = nil
     if M.parent and vim.api.nvim_win_is_valid(M.parent) then
@@ -131,6 +153,7 @@ function M.create(opts)
   M.state = {}
   M.parent = vim.api.nvim_get_current_win()
   -- should apply before calculate window's height to be able handle 'laststatus' option
+  M.plugins_on_open()
 
   M.bg_buf = vim.api.nvim_create_buf(false, true)
   vim.api.nvim_buf_set_option(M.bg_buf, "filetype", "zenmode-bg")
@@ -146,6 +169,7 @@ function M.create(opts)
     zindex = opts.zindex - 10,
   })
   if not ok then
+    M.plugins_on_close()
     util.error("could not open floating window. You need a Neovim build that supports zindex (May 15 2021 or newer)")
     M.bg_win = nil
     return
@@ -171,20 +195,21 @@ function M.create(opts)
     opts.on_open(M.win)
   end
 
+  -- fix layout since some plugins might have altered the window
   M.fix_layout()
 
   -- TODO: listen for WinNew and BufEnter. When a new window, or bufenter in a new window, close zen mode
   -- unless it's in a float
   -- TODO: when the cursor leaves the window, we close zen mode, or prevent leaving the window
   local augroup = [[
-    augroup ProseFocus 
+    augroup Zen
       autocmd!
-      autocmd WinClosed %d ++once ++nested lua require("prosevim.focus").close()
-      autocmd WinEnter * lua require("prosevim.focus.view").on_win_enter()
-      autocmd CursorMoved * lua require("prosevim.focus.view").fix_layout()
-      autocmd VimResized * lua require("prosevim.focus.view").fix_layout(true)
-      autocmd CursorHold * lua require("prosevim.focus.view").fix_layout()
-      autocmd BufWinEnter * lua require("prosevim.focus.view").on_buf_win_enter()
+      autocmd WinClosed %d ++once ++nested lua require("prose.focus.view").close()
+      autocmd WinEnter * lua require("prose.focus.view").on_win_enter()
+      autocmd CursorMoved * lua require("prose.focus.view").fix_layout()
+      autocmd VimResized * lua require("prose.focus.view").fix_layout(true)
+      autocmd CursorHold * lua require("prose.focus.view").fix_layout()
+      autocmd BufWinEnter * lua require("prose.focus.view").on_buf_win_enter()
     augroup end]]
 
   vim.api.nvim_exec(augroup:format(M.win, M.win), false)
@@ -199,6 +224,8 @@ function M.fix_hl(win, normal)
   vim.cmd("setlocal winhl=NormalFloat:" .. normal .. ",FloatBorder:ZenBorder,EndOfBuffer:" .. normal)
   vim.cmd("setlocal winblend=0")
   vim.cmd([[setlocal fcs=eob:\ ,fold:\ ,vert:\]])
+  -- vim.api.nvim_win_set_option(win, "winhighlight", "NormalFloat:" .. normal)
+  -- vim.api.nvim_win_set_option(win, "fcs", "eob: ")
   vim.api.nvim_set_current_win(cwin)
 end
 

@@ -1,4 +1,4 @@
-local util = require("prosevim.focus.util")
+local util = require("prose.focus.util")
 local M = {}
 
 ---@class ZenOptions
@@ -16,12 +16,12 @@ local defaults = {
     -- uncomment any of the options below, or add other vim.wo options you want to apply
     options = {
       signcolumn = "no", -- disable signcolumn
-      number = true, -- disable number column
-      -- relativenumber = false, -- disable relative numbers
-      -- cursorline = false, -- disable cursorline
-      -- cursorcolumn = false, -- disable cursor column
-      -- foldcolumn = "0", -- disable fold column
-      -- list = false, -- disable whitespace characters
+      number = false, -- disable number column
+      relativenumber = false, -- disable relative numbers
+      cursorline = false, -- disable cursorline
+      cursorcolumn = false, -- disable cursor column
+      foldcolumn = "0", -- disable fold column
+      list = false, -- disable whitespace characters
     },
   },
   plugins = {
@@ -63,7 +63,7 @@ end
 function M.setup(options)
   M.options = vim.tbl_deep_extend("force", {}, defaults, options or {})
   M.colors()
-  vim.cmd([[autocmd ColorScheme * lua require("prosevim.focus.config").colors()]])
+  vim.cmd([[autocmd ColorScheme * lua require("prose.focus.config").colors()]])
   for plugin, plugin_opts in pairs(M.options.plugins) do
     if type(plugin_opts) == "boolean" then
       M.options.plugins[plugin] = { enabled = plugin_opts }
