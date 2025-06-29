@@ -1,7 +1,6 @@
 local M = {}
 
 require("prose.stats")
-require("prose.focus")
 require("prose.line")
 
 local utils = require("prose.core.utils")
