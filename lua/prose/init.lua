@@ -5,6 +5,7 @@ require("prose.focus")
 require("prose.line")
 
 local utils = require("prose.core.utils")
+
 M.setup = function(opts)
   print(utils.dump(opts))
 end

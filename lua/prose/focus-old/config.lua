@@ -1,17 +1,16 @@
 local util = require("prose.focus.util")
 local M = {}
 
----@class ZenOptions
 local defaults = {
   border = "none",
   zindex = 40, -- zindex of the zen window. Should be less than 50, which is the float default
   window = {
-    backdrop = 0.95, -- shade the backdrop of the zen window. Set to 1 to keep the same as Normal
+    backdrop = 1, -- shade the backdrop of the zen window. Set to 1 to keep the same as Normal
     -- height and width can be:
     -- * an asbolute number of cells when > 1
     -- * a percentage of the width / height of the editor when <= 1
-    width = 120, -- width of the zen window
-    height = 1, -- height of the zen window
+    width = 100, -- width of the zen window
+    height = .8, -- height of the zen window
     -- by default, no options are changed in for the zen window
     -- uncomment any of the options below, or add other vim.wo options you want to apply
     options = {
@@ -32,11 +31,10 @@ local defaults = {
       ruler = false, -- disables the ruler text in the cmd line area
       showcmd = false, -- disables the command in the last line of the screen
     },
-    twilight = { enabled = true }, -- enable to start Twilight when zen mode opens
+    twilight = { enabled = false }, -- enable to start Twilight when zen mode opens
     gitsigns = { enabled = false }, -- disables git signs
     tmux = { enabled = false }, -- disables the tmux statusline
     diagnostics = { enabled = false }, -- disables diagnostics
-    todo = { enabled = false }, -- if set to "true", todo-comments.nvim highlights will be disabled
   },
   -- callback where you can add custom code when the zen window opens
   on_open = function(_win) end,
@@ -44,7 +42,6 @@ local defaults = {
   on_close = function() end,
 }
 
----@type ZenOptions
 M.options = nil
 
 function M.colors(options)

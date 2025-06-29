@@ -1,5 +1,4 @@
 local File = require("prose.core.file")
-local util = require("prose.core.utils")
 local async = require("plenary.async")
 
 describe("File.new()", function()

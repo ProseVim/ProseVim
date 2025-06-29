@@ -1,7 +1,9 @@
+local config = require("prose.focus.config")
 local view = require("prose.focus.view")
 
 local M = {}
 
+M.setup = config.setup
 M.toggle = view.toggle
 M.open = view.open
 M.close = view.close
